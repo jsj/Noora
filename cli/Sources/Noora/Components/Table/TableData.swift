@@ -40,6 +40,29 @@ public typealias TableRow = [TerminalText]
 /// A row in a table using semantic styling
 public typealias StyledTableRow = [TableCellStyle]
 
+/// Represents a section in a table with optional header
+public struct TableSection {
+    /// Optional section header text
+    public let header: TerminalText?
+
+    /// Rows in this section
+    public let rows: [TableRow]
+
+    /// Creates a new section
+    public init(header: TerminalText? = nil, rows: [TableRow]) {
+        self.header = header
+        self.rows = rows
+    }
+
+    /// Creates a new section with styled rows
+    public init(header: TerminalText? = nil, styledRows: [StyledTableRow]) {
+        self.header = header
+        self.rows = styledRows.map { row in
+            row.map { $0.toTerminalText() }
+        }
+    }
+}
+
 /// Represents the data structure for a table
 public struct TableData {
     /// Column definitions for the table
@@ -48,6 +71,12 @@ public struct TableData {
     /// Data rows for the table
     public let rows: [TableRow]
 
+    /// Sections for grouped tables (alternative to flat rows)
+    public let sections: [TableSection]?
+
+    /// Footer row (e.g., totals)
+    public let footer: TableRow?
+
     /// Creates a new table data structure
     /// - Parameters:
     ///   - columns: Column definitions
@@ -55,6 +84,20 @@ public struct TableData {
     public init(columns: [TableColumn], rows: [TableRow]) {
         self.columns = columns
         self.rows = rows
+        self.sections = nil
+        self.footer = nil
+    }
+
+    /// Creates a new table data structure with sections
+    /// - Parameters:
+    ///   - columns: Column definitions
+    ///   - sections: Grouped sections with optional headers
+    ///   - footer: Optional footer row (e.g., totals)
+    public init(columns: [TableColumn], sections: [TableSection], footer: TableRow? = nil) {
+        self.columns = columns
+        self.sections = sections
+        self.rows = sections.flatMap { $0.rows }
+        self.footer = footer
     }
 
     /// Creates a new table data structure with styled content
@@ -63,9 +106,11 @@ public struct TableData {
     ///   - rows: Data rows using semantic styling
     public init(columns: [TableColumn], styledRows: [StyledTableRow]) {
         self.columns = columns
-        rows = styledRows.map { row in
+        self.rows = styledRows.map { row in
             row.map { $0.toTerminalText() }
         }
+        self.sections = nil
+        self.footer = nil
     }
 
     /// Validates that all rows have the correct number of cells

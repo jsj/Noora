@@ -185,6 +185,52 @@ struct TableRenderer {
         return parts.joined()
     }
 
+    /// Render a section header row (spans all columns)
+    func renderSectionHeader(
+        _ text: TerminalText,
+        layout: TableLayout,
+        style: TableStyle,
+        theme: Theme,
+        terminal: Terminaling
+    ) -> String {
+        let chars = style.borderCharacters
+        let borderColor = theme.muted
+        let totalWidth = layout.columnWidths.reduce(0, +) + (style.cellPadding * 2 * layout.columnWidths.count) + (layout.columnWidths.count - 1)
+        
+        let formatted = text.formatted(theme: theme, terminal: terminal)
+        let textWidth = text.plain().displayWidth
+        let padding = totalWidth - textWidth
+        let cellPadding = String(repeating: " ", count: style.cellPadding)
+        
+        var parts: [String] = []
+        parts.append(chars.vertical.hexIfColoredTerminal(borderColor, terminal))
+        parts.append(cellPadding)
+        parts.append(formatted)
+        parts.append(String(repeating: " ", count: max(0, padding - style.cellPadding)))
+        parts.append(chars.vertical.hexIfColoredTerminal(borderColor, terminal))
+        
+        return parts.joined()
+    }
+
+    /// Render a section separator (for between sections)
+    func renderSectionSeparator(
+        layout: TableLayout,
+        style: TableStyle,
+        theme: Theme,
+        terminal: Terminaling
+    ) -> String {
+        let chars = style.borderCharacters
+        let borderColor = theme.muted
+        let totalWidth = layout.columnWidths.reduce(0, +) + (style.cellPadding * 2 * layout.columnWidths.count) + (layout.columnWidths.count - 1)
+        
+        var parts: [String] = []
+        parts.append(chars.leftJoin.hexIfColoredTerminal(borderColor, terminal))
+        parts.append(String(repeating: chars.horizontal, count: totalWidth).hexIfColoredTerminal(borderColor, terminal))
+        parts.append(chars.rightJoin.hexIfColoredTerminal(borderColor, terminal))
+        
+        return parts.joined()
+    }
+
     /// Render the complete table
     func render(
         data: TableData,
@@ -220,15 +266,61 @@ struct TableRenderer {
             lines.append(renderBorder(.middle, layout: layout, style: style, theme: theme, terminal: terminal))
         }
 
-        // Data rows
-        for row in data.rows {
+        // Render sections if present, otherwise flat rows
+        if let sections = data.sections {
+            for (sectionIndex, section) in sections.enumerated() {
+                // Section header
+                if let header = section.header {
+                    if sectionIndex > 0 {
+                        lines.append(renderSectionSeparator(layout: layout, style: style, theme: theme, terminal: terminal))
+                    }
+                    lines.append(renderSectionHeader(
+                        TerminalText("\(.accent(header.plain()))"),
+                        layout: layout,
+                        style: style,
+                        theme: theme,
+                        terminal: terminal
+                    ))
+                    lines.append(renderBorder(.middle, layout: layout, style: style, theme: theme, terminal: terminal))
+                }
+                
+                // Section rows
+                for row in section.rows {
+                    lines.append(renderRow(
+                        row,
+                        layout: layout,
+                        style: style,
+                        theme: theme,
+                        terminal: terminal,
+                        columns: data.columns
+                    ))
+                }
+            }
+        } else {
+            // Flat rows (original behavior)
+            for row in data.rows {
+                lines.append(renderRow(
+                    row,
+                    layout: layout,
+                    style: style,
+                    theme: theme,
+                    terminal: terminal,
+                    columns: data.columns
+                ))
+            }
+        }
+
+        // Footer row (e.g., totals)
+        if let footer = data.footer {
+            lines.append(renderBorder(.middle, layout: layout, style: style, theme: theme, terminal: terminal))
             lines.append(renderRow(
-                row,
+                footer.map { TerminalText("\(.primary($0.plain()))") },
                 layout: layout,
                 style: style,
                 theme: theme,
                 terminal: terminal,
-                columns: data.columns
+                columns: data.columns,
+                isHeader: true
             ))
         }
 
