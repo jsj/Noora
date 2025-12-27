@@ -396,6 +396,22 @@ public protocol Noorable: Sendable {
         renderer: Rendering
     ) async throws -> Int where Updates.Element == TableData
 
+    /// Displays a selectable table with lazy loading support via selection change callback.
+    /// - Parameters:
+    ///   - data: Initial table data to render.
+    ///   - updates: An async sequence emitting new table data to render.
+    ///   - pageSize: Number of rows visible at once.
+    ///   - onSelectionChange: Called when selection changes with current position info.
+    ///   - renderer: A rendering interface that holds the UI state.
+    /// - Returns: Selected row index.
+    func lazySelectableTable<Updates: AsyncSequence>(
+        _ data: TableData,
+        updates: Updates,
+        pageSize: Int,
+        onSelectionChange: @escaping @Sendable (SelectionInfo) -> Void,
+        renderer: Rendering
+    ) async throws -> Int where Updates.Element == TableData
+
     /// Displays a paginated table for large datasets
     /// - Parameters:
     ///   - headers: Column headers
@@ -890,6 +906,31 @@ public final class Noora: Noorable {
             keyStrokeListener: keyStrokeListener,
             logger: logger,
             tableRenderer: TableRenderer()
+        )
+
+        return try await component.run()
+    }
+
+    public func lazySelectableTable<Updates: AsyncSequence>(
+        _ data: TableData,
+        updates: Updates,
+        pageSize: Int,
+        onSelectionChange: @escaping @Sendable (SelectionInfo) -> Void,
+        renderer: Rendering = Renderer()
+    ) async throws -> Int where Updates.Element == TableData {
+        let component = LazySelectableTable(
+            initialData: data,
+            updates: updates,
+            style: theme.tableStyle,
+            pageSize: pageSize,
+            renderer: renderer,
+            standardPipelines: standardPipelines,
+            terminal: terminal,
+            theme: theme,
+            keyStrokeListener: keyStrokeListener,
+            logger: logger,
+            tableRenderer: TableRenderer(),
+            onSelectionChange: onSelectionChange
         )
 
         return try await component.run()

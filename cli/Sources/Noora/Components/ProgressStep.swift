@@ -99,10 +99,11 @@ struct ProgressStep<V> {
                 spinnerIcon = icon
                 render(message: lastMessage, icon: spinnerIcon ?? "ℹ︎")
             }
+        } else {
+            render(message: lastMessage, icon: "ℹ︎")
         }
 
         do {
-            render(message: lastMessage, icon: spinnerIcon ?? "ℹ︎")
             let result = try await task { progressMessage in
                 lastMessage = progressMessage
                 render(message: lastMessage, icon: spinnerIcon ?? "ℹ︎")

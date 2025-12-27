@@ -387,6 +387,22 @@
             )
         }
 
+        public func lazySelectableTable<Updates: AsyncSequence>(
+            _ data: TableData,
+            updates: Updates,
+            pageSize: Int,
+            onSelectionChange: @escaping @Sendable (SelectionInfo) -> Void,
+            renderer: Rendering
+        ) async throws -> Int where Updates.Element == TableData {
+            try await noora.lazySelectableTable(
+                data,
+                updates: updates,
+                pageSize: pageSize,
+                onSelectionChange: onSelectionChange,
+                renderer: renderer
+            )
+        }
+
         public func paginatedTable(
             headers: [String],
             rows: [[String]],

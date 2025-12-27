@@ -5,15 +5,15 @@ import Foundation
 public struct Theme: Sendable {
     /// Noora's default theme.
     public static let `default` = Theme(
-        primary: "A378F2",
-        secondary: "FF4081",
+        primary: "2196F3",
+        secondary: "1976D2",
         muted: "505050",
-        accent: "AC6115",
+        accent: "0D47A1",
         danger: "FF2929",
         success: "56822B",
         info: "0280B9",
         selectedRowText: "FFFFFF",
-        selectedRowBackground: "4600AE"
+        selectedRowBackground: "1565C0"
     )
 
     /// A primary color–it should represent the brand.

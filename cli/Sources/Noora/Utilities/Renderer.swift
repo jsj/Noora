@@ -21,11 +21,10 @@ public class Renderer: Rendering {
 
     private func eraseLines(_ lines: Int, standardPipeline: StandardPipelining) {
         if lines == 0 { return }
-        for index in 0 ... lines {
+        // Move cursor up and erase each line
+        for _ in 0 ..< lines {
+            moveCursorUp(standardPipeline: standardPipeline)
             eraseLine(standardPipeline: standardPipeline)
-            if index < lastRenderedContent.count {
-                moveCursorUp(standardPipeline: standardPipeline)
-            }
         }
         moveCursorToBeginningOfLine(standardPipeline: standardPipeline)
     }
