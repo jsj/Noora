@@ -32,6 +32,33 @@ public enum TableCellStyle {
             return TerminalText("\(.accent(text))")
         }
     }
+
+    /// Creates a styled cell for a monetary value (green for positive, red for negative)
+    /// - Parameters:
+    ///   - value: The numeric value
+    ///   - formatted: The formatted string to display (e.g., "$1,234.56")
+    ///   - invertSign: If true, treats negative as positive (for debts shown as positive numbers)
+    public static func money(_ value: Double, formatted: String, invertSign: Bool = false) -> TableCellStyle {
+        let isPositive = invertSign ? value < 0 : value >= 0
+        return isPositive ? .success(formatted) : .danger(formatted)
+    }
+
+    /// Creates a styled cell for a monetary value with automatic formatting
+    /// - Parameters:
+    ///   - value: The numeric value
+    ///   - currencySymbol: Currency symbol (default "$")
+    ///   - invertSign: If true, treats negative as positive (for debts)
+    public static func money(_ value: Double, currencySymbol: String = "$", invertSign: Bool = false) -> TableCellStyle {
+        let absValue = abs(value)
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        let formattedNumber = formatter.string(from: NSNumber(value: absValue)) ?? String(format: "%.2f", absValue)
+        let prefix = value < 0 ? "-" : ""
+        let formatted = "\(prefix)\(currencySymbol)\(formattedNumber)"
+        return money(value, formatted: formatted, invertSign: invertSign)
+    }
 }
 
 /// A row in a table, containing cells with TerminalText content

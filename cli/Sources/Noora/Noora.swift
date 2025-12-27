@@ -1444,6 +1444,23 @@ extension Noorable {
         )
     }
 
+    /// Displays a table with sections and optional footer
+    /// - Parameters:
+    ///   - columns: Column definitions
+    ///   - sections: Grouped sections with optional headers
+    ///   - footer: Optional footer row (e.g., totals)
+    ///   - renderer: A rendering interface that holds the UI state.
+    public func table(
+        columns: [TableColumn],
+        sections: [TableSection],
+        footer: StyledTableRow? = nil,
+        renderer: Rendering = Renderer()
+    ) {
+        let footerRow: TableRow? = footer?.map { $0.toTerminalText() }
+        let tableData = TableData(columns: columns, sections: sections, footer: footerRow)
+        table(tableData, renderer: renderer)
+    }
+
     /// Pretty prints a Codable object as JSON.
     /// - Parameter item: The Codable object to pretty print as JSON.
     /// - Throws: An error if the object cannot be encoded to JSON.
